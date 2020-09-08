@@ -14,7 +14,7 @@ import (
 
 var so = runtime.GOOS
 
-// LIMPATELA 
+// LIMPATELA
 func limpa() {
 	if so == "windows" {
 		clear := exec.Command("cmd", "/c", "cls")
@@ -27,7 +27,7 @@ func limpa() {
 	}
 }
 
-// TELA INICIAL 
+// TELA INICIAL
 func Menu() {
 	fmt.Println("\t0- Sair ")
 	fmt.Println("\t1- Depositar   ")
@@ -130,7 +130,7 @@ func (c *Conta) cria_Conta() {
 	if c.Saldo > 3000 {
 		c.Limite = 3000
 	} else {
-		c.Limite = c.Saldo * 0.07
+		c.Limite = c.Saldo * 0.75
 	}
 }
 
@@ -145,6 +145,108 @@ func (c Conta) Extrato() {
 	fmt.Printf("\tNome: %s\n", c.Titular)
 	fmt.Printf("\tSaldo: R$ %s\n", saldo)
 	fmt.Printf("\tLimite: R$ %s\n", limite)
+}
+
+// FUNC PARA DEPOSITAR
+func (c *Conta) Depositar() {
+	scanner := bufio.NewScanner(os.Stdin)
+	var valor string
+
+	for {
+		fmt.Printf("\tDigite o valor a ser depositado: ")
+		for scanner.Scan() {
+			valor = scanner.Text()
+			break
+		}
+		if scanner.Err() != nil {
+			panic(scanner.Err())
+		}
+		bin := []byte(valor)
+		count := 0
+		for _, bit := range bin {
+			var ponto int
+			if bit >= 0x30 && bit <= 0x39 || bit == 0x2E {
+				if bit == 0x2E {
+					if ponto > 1 {
+						continue
+					}
+					ponto++
+				}
+				count -= -1
+			}
+		}
+
+		if count != len(bin) {
+			fmt.Println("\tError: Valor Inválido!!")
+			time.Sleep(time.Second + 3)
+			limpa()
+			continue
+		}
+		if somaSaldo, _ := strconv.ParseFloat(valor, 64); somaSaldo < 20 {
+			fmt.Println("\tError: Valor Inválido!!")
+			time.Sleep(time.Second + 3)
+			limpa()
+			continue
+		} else {
+			c.Saldo += somaSaldo
+		}
+		break
+	}
+	saldo := fmt.Sprintf("%.2f", c.Saldo)
+	saldo = strings.Replace(saldo, ".", ",", 1)
+	fmt.Println("\t\aMessagem: Saldo atualizado com sucesso!!")
+	time.Sleep(time.Second + 2)
+	fmt.Println("\t\aNovo Saldo: R$", saldo)
+}
+
+func (c *Conta) Sacar() {
+	scanner := bufio.NewScanner(os.Stdin)
+	for {
+		var valor string
+		fmt.Printf("Escreva o valor: ")
+		for scanner.Scan() {
+			valor = scanner.Text()
+			break
+		}
+		if scanner.Err() != nil {
+			panic(scanner.Err())
+		}
+		bin := []byte(valor)
+		count := 0
+		for _, bit := range bin {
+			var ponto int
+			if bit >= 0x30 && bit <= 0x39 || bit == 0x2E {
+				if bit == 0x2E {
+					if ponto > 1 {
+						continue
+					}
+					ponto++
+				}
+				count -= -1
+			}
+		}
+
+		if count != len(bin) {
+			fmt.Println("\tError: Valor Inválido!!")
+			time.Sleep(time.Second + 3)
+			limpa()
+			continue
+		}
+		if val, err := strconv.ParseFloat(valor, 64); err != nil || val > c.Saldo || val < 20 {
+			fmt.Println("\tError: Valor Inválido!!")
+			time.Sleep(time.Second + 3)
+			limpa()
+			continue
+		} else {
+			c.Saldo -= val
+		}
+		break
+	}
+	saldo := fmt.Sprintf("%.2f", c.Saldo)
+	saldo = strings.Replace(saldo, ".", ",", 1)
+	fmt.Println("\t\aMessagem: Saldo atualizado com sucesso!!")
+	time.Sleep(time.Second + 2)
+	fmt.Println("\t\aNovo Saldo: R$", saldo)
 }
 
 func main() {
@@ -201,13 +303,13 @@ func main() {
 		limpa()
 		switch esc {
 		case "1":
-			fmt.Println("\tDepositar()")
+			c.Depositar()
 			fmt.Printf("\tTecle para continuar...")
 			fmt.Scanln(&esc)
 			time.Sleep(time.Second + 2)
 			limpa()
 		case "2":
-			fmt.Println("\tSacar()")
+			c.Sacar()
 			fmt.Printf("\tTecle para continuar...")
 			fmt.Scanln(&esc)
 			time.Sleep(time.Second + 2)
