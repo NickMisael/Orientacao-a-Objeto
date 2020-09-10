@@ -102,11 +102,15 @@ func (c *Conta) cria_Conta() {
 			limpa()
 			continue
 		}
+		var virgula bool
 		bin := []byte(saldo)
 		count := 0
 		for _, bit := range bin {
-			if bit >= 0x30 && bit <= 0x39 || bit == 0x2E {
+			if bit >= 0x30 && bit <= 0x39 || bit == 0x2E || bit == 0x2C {
 				count -= -1
+				if bit == 0x2C {
+					virgula = true
+				}
 			}
 		}
 
@@ -116,6 +120,11 @@ func (c *Conta) cria_Conta() {
 			limpa()
 			continue
 		}
+
+		if virgula == true {
+			saldo = strings.ReplaceAll(saldo, ",", ".")
+		}
+
 		c.Saldo, _ = strconv.ParseFloat(saldo, 64)
 		if c.Saldo < 20 {
 			fmt.Println("\tError: Valor Inválido!")
@@ -161,16 +170,20 @@ func (c *Conta) Depositar() {
 		if scanner.Err() != nil {
 			panic(scanner.Err())
 		}
+		var virgula bool
 		bin := []byte(valor)
 		count := 0
 		for _, bit := range bin {
 			var ponto int
-			if bit >= 0x30 && bit <= 0x39 || bit == 0x2E {
+			if bit >= 0x30 && bit <= 0x39 || bit == 0x2E || bit == 0x2C {
 				if bit == 0x2E {
 					if ponto > 1 {
 						continue
 					}
 					ponto++
+				}
+				if bit == 0x2C {
+					virgula = true
 				}
 				count -= -1
 			}
@@ -182,6 +195,11 @@ func (c *Conta) Depositar() {
 			limpa()
 			continue
 		}
+
+		if virgula == true {
+			valor = strings.ReplaceAll(valor, ",", ".")
+		}
+
 		if somaSaldo, _ := strconv.ParseFloat(valor, 64); somaSaldo < 20 {
 			fmt.Println("\tError: Valor Inválido!!")
 			time.Sleep(time.Second + 3)
@@ -203,7 +221,7 @@ func (c *Conta) Sacar() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		var valor string
-		fmt.Printf("Escreva o valor: ")
+		fmt.Printf("\tEscreva o valor: ")
 		for scanner.Scan() {
 			valor = scanner.Text()
 			break
@@ -211,16 +229,20 @@ func (c *Conta) Sacar() {
 		if scanner.Err() != nil {
 			panic(scanner.Err())
 		}
+		var virgula bool
 		bin := []byte(valor)
 		count := 0
 		for _, bit := range bin {
 			var ponto int
-			if bit >= 0x30 && bit <= 0x39 || bit == 0x2E {
+			if bit >= 0x30 && bit <= 0x39 || bit == 0x2E || bit == 0x2C {
 				if bit == 0x2E {
 					if ponto > 1 {
 						continue
 					}
 					ponto++
+				}
+				if bit == 0x2C {
+					virgula = true
 				}
 				count -= -1
 			}
@@ -231,6 +253,9 @@ func (c *Conta) Sacar() {
 			time.Sleep(time.Second + 3)
 			limpa()
 			continue
+		}
+		if virgula == true {
+			valor = strings.ReplaceAll(valor, ",", ".")
 		}
 		if val, err := strconv.ParseFloat(valor, 64); err != nil || val > c.Saldo || val < 20 {
 			fmt.Println("\tError: Valor Inválido!!")
